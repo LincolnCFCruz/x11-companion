@@ -1,0 +1,29 @@
+[package]
+name = "attack-shark-x11"
+description = "Configuration protocol and HID driver for the Attack Shark X11 mouse"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+hidapi = { version = "2", default-features = false, features = ["windows-native"] }
+
+# Shared access, so the app and the command-line tool can have the mouse open at the same time.
+[target.'cfg(target_os = "macos")'.dependencies]
+hidapi = { version = "2", features = ["macos-shared-device"] }
+
+[target.'cfg(not(any(windows, target_os = "macos")))'.dependencies]
+hidapi = "2"
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

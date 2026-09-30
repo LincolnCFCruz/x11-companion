@@ -1,0 +1,103 @@
+# Push a tag such as v1.0.1 (matching the version in Cargo.toml) to build every platform and publish
+# a release with one ready-to-run file per platform for the app and for the command-line tool.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows-x64
+          - os: ubuntu-22.04
+            platform: linux-x86_64
+          - os: macos-latest
+            platform: macos-universal
+            targets: aarch64-apple-darwin,x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.targets }}
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libudev-dev
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          (cd app/src-tauri && npx --yes @tauri-apps/cli@2 build --no-bundle)
+          cargo build --release -p shark-x11
+          mkdir dist
+          cp "target/release/Attack Shark X11.exe" dist/Attack-Shark-X11-windows-x64.exe
+          cp target/release/shark-x11.exe dist/shark-x11-windows-x64.exe
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          (cd app/src-tauri && npx --yes @tauri-apps/cli@2 build --bundles appimage)
+          cargo build --release -p shark-x11
+          mkdir dist
+          cp target/release/bundle/appimage/*.AppImage dist/Attack-Shark-X11-linux-x86_64.AppImage
+          cp target/release/shark-x11 dist/shark-x11-linux-x86_64
+
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          (cd app/src-tauri && npx --yes @tauri-apps/cli@2 build --target universal-apple-darwin --bundles app)
+          cargo build --release -p shark-x11 --target aarch64-apple-darwin
+          cargo build --release -p shark-x11 --target x86_64-apple-darwin
+          mkdir dist
+          ditto -c -k --keepParent "target/universal-apple-darwin/release/bundle/macos/Attack Shark X11.app" \
+            dist/Attack-Shark-X11-macos-universal.zip
+          lipo -create -output dist/shark-x11-macos-universal \
+            target/aarch64-apple-darwin/release/shark-x11 target/x86_64-apple-darwin/release/shark-x11
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.platform }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check the tag matches the version
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match the version in Cargo.toml ($version)"
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "Attack Shark X11 ${GITHUB_REF_NAME#v}" --generate-notes

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Attack Shark X11",
+  "mainBinaryName": "Attack Shark X11",
+  "identifier": "com.lincolncruz.attacksharkx11",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "appimage"],
+    "publisher": "Lincoln Cruz",
+    "copyright": "Copyright (c) 2026 Lincoln Cruz",
+    "category": "Utility",
+    "shortDescription": "Settings and battery level for the Attack Shark X11 mouse",
+    "longDescription": "An unofficial app for the Attack Shark X11 mouse: DPI stages, polling rate, lighting, button mapping, sleep timers and debounce, with the battery level in the tray and low-battery alerts.",
+    "icon": [
+      "icons/128x128@2x.png",
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "signingIdentity": "-"
+    }
+  }
+}

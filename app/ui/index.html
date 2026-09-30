@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attack Shark X11</title>
+<link rel="stylesheet" href="/style.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-kicker">Attack Shark</span>
+      <span class="brand-model">X11</span>
+      <span class="brand-version" id="version"></span>
+    </div>
+
+    <nav class="nav" aria-label="Sections">
+      <button class="nav-item" data-page="performance">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="1.6" class="fill"/><path d="M10 1.5v3M10 15.5v3M1.5 10h3M15.5 10h3"/></svg>
+        Performance
+      </button>
+      <button class="nav-item" data-page="lighting">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.4"/><path d="M10 1.8v2.2M10 16v2.2M1.8 10H4M16 10h2.2M4.2 4.2l1.6 1.6M14.2 14.2l1.6 1.6M4.2 15.8l1.6-1.6M14.2 5.8l1.6-1.6"/></svg>
+        Lighting
+      </button>
+      <button class="nav-item" data-page="buttons">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="2" width="10" height="16" rx="5"/><path d="M10 5.2v3"/></svg>
+        Buttons
+      </button>
+      <button class="nav-item" data-page="power">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.2 12.6A6.8 6.8 0 0 1 7.4 3.8a6.8 6.8 0 1 0 8.8 8.8z"/></svg>
+        Power
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <section class="profiles" aria-label="Onboard profile">
+        <div class="label">Profile</div>
+        <div class="profile-pills" id="profiles"></div>
+      </section>
+
+      <section class="battery" id="battery" aria-live="polite">
+        <div class="label">Battery</div>
+        <div class="battery-reading"><span id="battery-level">––</span><span class="battery-unit">%</span></div>
+        <div class="meter" id="battery-meter" aria-hidden="true"></div>
+        <div class="battery-state" id="battery-state">Waiting for the mouse</div>
+      </section>
+
+      <div class="startup-row" id="startup-row" hidden>
+        <span id="startup-label">Start with Windows</span>
+        <button class="switch switch-sm" id="startup" role="switch" aria-checked="false" aria-label="Start with Windows"></button>
+      </div>
+
+      <div class="foot-row">
+        <div class="link" id="link"><span class="dot"></span><span id="link-text">Connecting</span></div>
+        <button class="icon-btn" id="theme-toggle" title="Theme">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.8"/><path d="M10 3.2a6.8 6.8 0 0 1 0 13.6z" class="fill"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <h1 id="page-title">Performance</h1>
+        <p id="page-sub" class="page-sub"></p>
+      </div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </header>
+
+    <!-- Performance -->
+    <section class="page" data-page="performance">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>DPI stages</h2>
+            <p class="hint">Select a stage to edit it. The DPI button cycles through the enabled stages.</p>
+          </div>
+          <div class="stepper" aria-label="Enabled stages">
+            <button class="step" data-step="-1" aria-label="Fewer stages">−</button>
+            <span><b id="stage-count">6</b> enabled</span>
+            <button class="step" data-step="1" aria-label="More stages">+</button>
+          </div>
+        </div>
+
+        <div class="stages" id="stages"></div>
+
+        <div class="stage-editor">
+          <div class="readout">
+            <span class="label">Stage <span id="edit-stage">1</span></span>
+            <div class="dpi-field">
+              <input id="dpi-input" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="DPI">
+              <span class="unit">DPI</span>
+            </div>
+          </div>
+          <div class="dpi-slider">
+            <input type="range" id="dpi-slider" min="0" max="1000" step="1" aria-label="DPI">
+            <div class="ticks" id="dpi-ticks"></div>
+          </div>
+          <div class="editor-actions">
+            <label class="swatch" title="LED color of this stage">
+              <input type="color" id="stage-color">
+              <span class="swatch-chip"></span>
+              <span class="swatch-label">LED</span>
+            </label>
+            <button class="btn" id="make-active">Make active</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Polling rate</h2>
+          <p class="hint">Reports per second. Lower rates save battery.</p>
+          <div class="segmented" id="polling"></div>
+          <div class="interval">
+            <span class="label">Report interval</span>
+            <span class="interval-value" id="polling-interval">–</span>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Sensor</h2>
+          <div class="toggle-row">
+            <div><div class="row-title">Angle snap</div><div class="hint">Straightens slightly shaky lines</div></div>
+            <button class="switch" id="angle-snap" role="switch" aria-checked="false" aria-label="Angle snap"></button>
+          </div>
+          <div class="toggle-row">
+            <div><div class="row-title">Ripple control</div><div class="hint">Smooths jitter at high DPI</div></div>
+            <button class="switch" id="ripple" role="switch" aria-checked="false" aria-label="Ripple control"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lighting -->
+    <section class="page" data-page="lighting">
+      <div class="card">
+        <h2>Effect</h2>
+        <div class="modes" id="modes"></div>
+      </div>
+      <div class="card">
+        <div class="control" id="ctl-color">
+          <div><div class="row-title">Color</div><div class="hint">Used by Static and Breathing</div></div>
+          <label class="swatch swatch-lg">
+            <input type="color" id="light-color">
+            <span class="swatch-chip"></span>
+            <span class="swatch-label" id="light-color-hex"></span>
+          </label>
+        </div>
+        <div class="control" id="ctl-speed">
+          <div><div class="row-title">Speed</div><div class="hint">How fast the effect moves</div></div>
+          <div class="segmented compact" id="speed"></div>
+        </div>
+        <div class="control" id="ctl-brightness">
+          <div><div class="row-title">Brightness</div><div class="hint">LED intensity</div></div>
+          <div class="range-inline">
+            <input type="range" id="brightness" min="1" max="8" step="1" aria-label="Brightness">
+            <span class="range-value" id="brightness-value"></span>
+          </div>
+        </div>
+        <p class="hint note" id="dpi-color-note">Static DPI and Breathing DPI light up in the active stage's color. Set stage colors on the Performance page.</p>
+      </div>
+    </section>
+
+    <!-- Buttons -->
+    <section class="page" data-page="buttons">
+      <div class="buttons-layout">
+        <div class="card mouse-card">
+          <div class="mouse-views" id="mouse">
+            <!-- Traced from product photos of the X11. Top view, front up. -->
+            <svg class="mouse mouse-top" viewBox="0 0 180 346" role="img" aria-label="Attack Shark X11, top view">
+              <defs>
+                <path id="x11-top" d="M15.6 31.8C20.2 29.8 20.0 29.6 29.5 25.6C39.0 21.6 58.3 13.8 72.7 7.8L76.1 8.8L77.0 22.7L102.0 22.7L103.0 8.8L106.3 7.8C121.0 13.8 140.9 21.6 150.5 25.6C160.1 29.6 159.4 29.8 163.9 31.8C165.0 32.5 166.3 32.5 167.3 33.8C168.2 35.0 169.2 36.9 169.7 39.5C170.2 42.2 170.1 42.7 170.2 49.6C170.2 56.5 170.5 66.8 170.2 80.8C169.8 94.8 168.6 118.8 168.2 133.6C167.9 148.4 167.6 154.4 168.2 169.6C168.9 184.8 171.4 210.0 172.1 224.8C172.8 239.6 172.9 250.1 172.6 258.4C172.2 266.7 171.3 269.8 170.2 274.7C169.0 279.7 168.7 282.2 165.8 288.2C163.0 294.1 158.2 303.8 152.9 310.2C147.5 316.6 140.5 322.2 133.7 326.6C126.9 330.9 119.4 334.1 112.1 336.2C104.8 338.2 97.4 339.0 90.0 339.0C82.6 339.0 75.2 338.2 67.9 336.2C60.6 334.1 53.1 330.9 46.3 326.6C39.5 322.2 32.5 316.6 27.1 310.2C21.8 303.8 17.0 294.1 14.2 288.2C11.3 282.2 11.0 279.7 9.8 274.7C8.7 269.8 7.8 270.7 7.4 258.4C7.0 246.1 7.4 220.0 7.4 200.8C7.5 181.6 7.8 163.2 7.9 143.2C8.1 123.2 8.3 96.4 8.4 80.8C8.5 65.2 8.2 56.6 8.4 49.6C8.6 42.6 8.7 41.6 9.4 39.0C10.0 36.5 11.2 35.4 12.2 34.2C13.3 33.0 14.5 32.6 15.6 31.8Z"/>
+                <clipPath id="x11-top-clip"><use href="#x11-top"/></clipPath>
+              </defs>
+              <use class="body" href="#x11-top"/>
+              <g clip-path="url(#x11-top-clip)">
+                <path class="part" data-button="left" d="M15.1 -5.6L77.0 -5.6L77.0 108.6L90.0 110.6L90.0 172.5C58.8 173.0 31.0 171.5 21.4 170.1Q16.1 169.1 15.6 163.8Z"/>
+                <path class="part" data-button="right" d="M164.9 -5.6L102.0 -5.6L102.0 108.6L90.0 110.6L90.0 172.5C121.2 173.0 149.0 171.5 158.6 170.1Q163.9 169.1 164.4 163.8Z"/>
+              </g>
+              <use class="outline" href="#x11-top"/>
+              <path class="housing" d="M77.0 22.7L102.0 22.7L102.0 104.8Q102.0 109.1 97.7 109.1L81.4 109.1Q77.0 109.1 77.0 104.8Z"/>
+              <rect class="well" x="78.5" y="52.5" width="22.1" height="55.2" rx="5.3"/>
+              <rect class="part" data-button="middle" x="81.4" y="54.9" width="16.3" height="50.4" rx="6.7"/>
+              <path class="knurl" d="M83.8 59.7L95.3 59.7M83.8 63.2L95.3 63.2M83.8 66.8L95.3 66.8M83.8 70.3L95.3 70.3M83.8 73.9L95.3 73.9M83.8 77.4L95.3 77.4M83.8 81.0L95.3 81.0M83.8 84.5L95.3 84.5M83.8 88.1L95.3 88.1M83.8 91.6L95.3 91.6M83.8 95.2L95.3 95.2M83.8 98.8L95.3 98.8M83.8 102.3L95.3 102.3"/>
+              <path class="part chevron" data-button="wheel-up" d="M85.7 40.0L89.5 36.2L93.4 40.0"/>
+              <path class="part chevron" data-button="wheel-down" d="M86.2 115.4L90.0 119.2L93.8 115.4"/>
+              <rect class="led" x="84.7" y="180.6" width="10.6" height="2.9" rx="1.4"/>
+              <rect class="part" data-button="forward" x="5.0" y="120.6" width="7.2" height="44.6" rx="3.6"/>
+              <rect class="part" data-button="back" x="5.0" y="173.0" width="7.2" height="47.0" rx="3.6"/>
+              <circle class="part underside" data-button="dpi" cx="90.0" cy="268.0" r="15"/>
+              <text class="part-label" x="90.0" y="271.3">DPI</text>
+            </svg>
+            <div class="view-label">Top</div>
+
+            <!-- Left side, front to the left. -->
+            <svg class="mouse mouse-side" viewBox="0 0 262 96" role="img" aria-label="Attack Shark X11, left side">
+              <defs>
+                <path id="x11-side" d="M6.2 57.3C7.0 56.2 7.7 54.9 8.7 54.0C9.6 53.1 8.0 54.2 11.9 51.9C15.9 49.5 24.8 43.8 32.4 40.0C40.1 36.2 48.9 32.8 58.0 28.8C67.1 24.9 79.4 19.2 87.2 16.2C95.0 13.2 99.4 12.2 104.8 10.8C110.2 9.5 113.9 8.7 119.6 8.0C125.2 7.2 132.1 6.3 138.6 6.2C145.2 6.0 152.1 6.1 158.8 6.9C165.5 7.7 171.8 8.7 178.6 10.8C185.4 12.9 193.4 16.1 199.8 19.5C206.3 22.8 210.8 25.9 217.1 31.0C223.4 36.1 231.8 43.9 237.6 50.1C243.5 56.3 249.4 64.1 252.4 68.1C255.4 72.1 255.5 72.2 255.6 74.2C255.8 76.2 254.9 78.3 253.5 80.3C252.1 82.3 249.9 84.6 247.4 86.1C244.8 87.6 245.0 88.6 238.0 89.3C231.0 90.0 224.2 90.3 205.6 90.4C187.0 90.5 152.8 89.8 126.4 89.7C100.0 89.6 62.2 89.9 47.2 89.7C32.2 89.5 38.9 89.1 36.4 88.6C33.9 88.1 33.5 87.2 32.1 86.4L6.2 57.3Z"/>
+                <clipPath id="x11-side-clip"><use href="#x11-side"/></clipPath>
+              </defs>
+              <circle class="part" data-button="middle" cx="65.2" cy="41.4" r="23.0"/>
+              <circle class="knurl" cx="65.2" cy="41.4" r="20.2"/>
+              <use class="body" href="#x11-side"/>
+              <g clip-path="url(#x11-side-clip)">
+                <path class="part" data-button="left" d="M-3.2 -3.9L123.9 -3.9L123.5 6.9C121.4 17.7 119.2 32.1 114.9 35.3C94.0 39.3 43.6 47.6 9.0 54.0L-3.2 56.6Z"/>
+              </g>
+              <use class="outline" href="#x11-side"/>
+              <path class="part" data-button="forward" d="M91.1 41.8L117.0 40.0Q119.6 39.8 119.6 42.2L119.6 52.6Q119.6 55.1 117.0 55.1L95.8 55.1Q92.9 55.1 90.8 53.0L86.4 48.6Q84.6 46.5 87.2 43.6Q88.6 42.2 91.1 41.8Z"/>
+              <path class="part" data-button="back" d="M125.7 39.3L152.3 41.1Q155.9 41.4 157.4 44.0Q158.4 45.8 156.6 47.9L152.7 53.3Q151.2 55.5 148.4 55.5L125.7 55.5Q123.2 55.5 123.2 53.0L123.2 41.8Q123.2 39.3 125.7 39.3Z"/>
+              <path class="logo-mark" d="M49.0 79.6C51.2 74.6 54.4 70.6 60.2 68.4C57.6 72.4 56.6 76.0 57.3 79.6Z"/>
+              <text class="logo" x="62.0" y="78.5">ATTACK SHARK</text>
+              <path class="skate" d="M43.6 91.1L72.4 91.1M191.2 92.2L238.0 91.1"/>
+            </svg>
+            <div class="view-label">Left side</div>
+          </div>
+          <p class="hint center">Dashed: the DPI button, on the underside.</p>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Assignments</h2>
+            <button class="btn ghost" id="buttons-reset">Restore defaults</button>
+          </div>
+          <div class="bindings" id="bindings"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Power -->
+    <section class="page" data-page="power">
+      <div class="card">
+        <div class="range-row">
+          <div>
+            <h2>Sleep</h2>
+            <p class="hint">Idle time before the mouse dozes. Moving it wakes it up.</p>
+          </div>
+          <div class="big-value"><span id="sleep-value"></span><span class="unit">min</span></div>
+          <input type="range" id="sleep" min="1" max="60" step="1" aria-label="Sleep, in half minutes">
+        </div>
+        <div class="range-row">
+          <div>
+            <h2>Deep sleep</h2>
+            <p class="hint">Idle time before the mouse powers down further to save battery.</p>
+          </div>
+          <div class="big-value"><span id="deep-sleep-value"></span><span class="unit">min</span></div>
+          <input type="range" id="deep-sleep" min="1" max="60" step="1" aria-label="Deep sleep, in minutes">
+        </div>
+      </div>
+      <div class="card">
+        <div class="range-row">
+          <div>
+            <h2>Debounce</h2>
+            <p class="hint">How long a click must settle before it counts. Raise it if single clicks register twice.</p>
+          </div>
+          <div class="big-value"><span id="debounce-value"></span><span class="unit">ms</span></div>
+          <input type="range" id="debounce" min="4" max="50" step="2" aria-label="Debounce, in milliseconds">
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="overlay-card">
+    <svg class="overlay-art" viewBox="0 0 120 120" aria-hidden="true">
+      <rect x="38" y="16" width="44" height="76" rx="22"/>
+      <path d="M60 16v26M49 42h22"/>
+      <circle cx="60" cy="106" r="3" class="fill pulse"/>
+    </svg>
+    <h2 id="overlay-title">Connecting</h2>
+    <p class="hint" id="overlay-text">Looking for the mouse.</p>
+  </div>
+</div>
+</body>
+</html>

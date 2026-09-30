@@ -1,0 +1,3 @@
+# Rust / Tauri
+target/
+app/src-tauri/gen/
